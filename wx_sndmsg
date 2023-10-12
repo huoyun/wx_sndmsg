@@ -1,0 +1,117 @@
+#!python3
+# -*- coding:utf-8 -*-
+
+import uiautomation as auto
+import xlrd
+logFile='wx_sndmsg.log'
+# 定义发送消息的方法，入参为wx：微信；name:要给谁发送；msg:发送内容;wt:每次操作暂停时间
+def snd_msg(wx,friend_name,message,waite_time: int=0.2):
+    #获取微信聊天窗口
+    wx.SwitchToThisWindow()
+    wx.ButtonControl(Name="聊天").Click()  # 切换到聊天窗口
+    #搜索好友名称
+    wx.SendKeys(text='{Ctrl}f', waitTime=waite_time)
+    wx.SendKeys(text='{Ctrl}a', waitTime=waite_time)
+    wx.SendKey(key=auto.SpecialKeyNames['DELETE'],waitTime=waite_time)
+    auto.SetClipboardText(friend_name)
+    wx.SendKeys('{Ctrl}v',waitTime=waite_time)
+    wx.SendKey(key=auto.SpecialKeyNames['ENTER'], waitTime=waite_time)
+    #wx.SendKeys(message, waitTime=waite_time)
+    auto.SetClipboardText(message)
+    wx.SendKeys('{Ctrl}v',waitTime=waite_time*2)
+    wx.SendKey(key=auto.SpecialKeyNames['ENTER'], waitTime=waite_time*4)
+
+def data_check(wb,with_call):
+    checkCmd=True
+    #校验发送人名单
+    try:
+        sheet1 = wb.sheet_by_name("联系人")
+    except Exception as e:
+        auto.Logger.Log('没有"联系人"这个sheet页啊,你看都报错了:\n{}'.format(e), logFile=logFile)
+        checkCmd = False
+    try:
+        sheet2 = wb.sheet_by_name("发送内容")
+    except Exception as e:
+        auto.Logger.Log('没有"发送内容"这个sheet页啊，你看都报错了:\n{}'.format(e), logFile=logFile)
+        checkCmd = False
+    if checkCmd == False:
+        return checkCmd
+    if sheet1.nrows<2:
+        auto.Logger.Log('联系人sheet页没数据啊亲',logFile=logFile)
+        checkCmd=False
+    # 每行数据检查
+    i = 1
+    while i < sheet1.nrows:
+        # 第1列 微信备注名称或昵称检查
+        friendName = sheet1.row(i)[0].value
+        if len(friendName.strip())==0:
+            auto.Logger.Log('联系人sheet页第{}行微信昵称或备注名为空啊亲'.format(i+1), logFile=logFile)
+            checkCmd=False
+        callName=sheet1.row(i)[1].value
+        if len(callName.strip())==0 and with_call:
+            auto.Logger.Log('联系人sheet页第{}行称呼为空啊亲'.format(i+1),logFile=logFile)
+        i += 1
+    #校验发送内容
+
+    if len(sheet2.cell_value(0,0))==0:
+        auto.Logger.Log('发送内容sheet页A1单元格没有内容啊',logFile=logFile)
+        checkCmd = False
+    return checkCmd
+
+#主函数，执行取姓名和发送操作
+def main_work(wb,with_call):
+    #获取联系人信息
+    sheet1=wb.sheet_by_name('联系人')
+    sheet2=wb.sheet_by_name('发送内容')
+    message=sheet2.cell_value(0,0)
+    #获取微信聊天窗口
+    try:
+        wx = auto.WindowControl(Name="微信", ClassName='WeChatMainWndForPC')
+        wx.SwitchToThisWindow()
+        wx.ButtonControl(Name="聊天").Click()  # 切换到聊天窗口
+    except Exception as e:
+        auto.Logger.Log('亲，微信没打开啊，请把微信打开好吗，至少在任务栏上能看到微信图标好吧，你看都报错了:\n{}'.format(e),logFile=logFile)
+        return
+
+    auto.Logger.Log('开始发送消息啦',logFile=logFile)
+    i = 1
+    while i < sheet1.nrows:
+        contact=sheet1.row(i)[0].value
+        call=sheet1.row(i)[1].value
+        if with_call:
+            snd_msg(wx,contact,call+','+message)
+            auto.Logger.Log('发送人：{}，发送内容:{}'.format(contact, call + ',' + message), logFile=logFile)
+        else:
+            snd_msg(wx, contact, message)
+            auto.Logger.Log('发送人：{}，发送内容:{}'.format(contact, message), logFile=logFile)
+
+        i+=1
+    auto.Logger.Log('发送完成，此次总共发送{}条信息'.format(i-1), logFile=logFile)
+
+if __name__=='__main__':
+
+    key = input('选择发送方式: 1.每条信息都带称呼 2.不带称呼 \n')
+    #通过Excel文件获取发送人名单
+    file = '微信批量发送消息配置表.xlsx'
+    try:
+        wb = xlrd.open_workbook(filename=file)
+    except Exception as e:
+        auto.Logger.Log('找不到"{}"这个文件啊亲'.format(file), logFile=logFile)
+        input('请按回车键退出')
+    if key=='1':
+        with_call=True
+    elif key=='2':
+        with_call=False
+    checkCmd = data_check(wb,with_call)
+    if checkCmd:
+        main_work(wb,with_call)
+    input('发送结束，请按回车键退出')
+
+
+
+
+
+
+
+
+
