@@ -91,12 +91,38 @@ def print_instructions():
     logging.info(instructions)
 
 def print_config_description():
-    try:
-        with open('config_description.txt', 'r', encoding='utf-8') as f:
-            logging.info(f.read())
-    except Exception as e:
-        logging.error(f"读取配置说明文件时出错: {e}")
+    config_description = """
+    配置参数说明：
 
+    excel_file_name: Excel文件的名称，包含联系人信息和消息内容。
+
+    wait_time_between_messages: 两条消息发送之间的等待时间（秒）。
+        - 增加此值可以降低被检测为垃圾消息的风险，但会降低发送效率。
+
+    wait_time_after_search: 在搜索联系人后的等待时间（秒）。
+        - 给微信一些时间来响应搜索操作。
+
+    wait_time_after_enter: 在按下回车键进入聊天窗口后的等待时间（秒）。
+        - 确保聊天窗口已经打开。
+
+    wait_time_for_chat_window: 等待聊天窗口完全加载的时间（秒）。
+        - 如果聊天记录较多，可能需要增加此值。
+
+    max_search_attempts: 尝试查找联系人的最大次数。
+        - 增加此值可以提高找到联系人的成功率，但可能会降低效率。
+
+    wait_time_between_attempts: 两次查找尝试之间的等待时间（秒）。
+        - 给微信一些时间来响应上一次的搜索操作。
+
+    wait_time_after_paste: 在粘贴消息内容后的等待时间（秒）。
+        - 确保消息内容被正确粘贴。
+
+    wait_time_after_send: 在发送消息后的等待时间（秒）。
+        - 给微信一些时间来发送消息。
+
+    注意：这些参数的最佳值可能因设备性能和网络条件而异。请根据实际使用情况进行调整。
+    """
+    logging.info(config_description)
 def send_message(window, name, title, message, use_title, config):
     try:
         # 将name转为字符串
