@@ -1,0 +1,11 @@
+{
+    "excel_file_name": "微信批量发送消息配置表.xlsx",
+    "wait_time_between_messages": 1.0,
+    "wait_time_after_search": 0.5,
+    "wait_time_after_enter": 0.5,
+    "wait_time_for_chat_window": 1.0,
+    "max_search_attempts": 2,
+    "wait_time_between_attempts": 0.5,
+    "wait_time_after_paste": 0.3,
+    "wait_time_after_send": 0.3
+}
