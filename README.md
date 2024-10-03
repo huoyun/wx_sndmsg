@@ -16,7 +16,7 @@
 - 发送过程中请勿手动操作微信,以免影响自动化流程
 
 
-config.jason内容如下：
+config.json内容如下：
 {
     "excel_file_name": "微信批量发送消息配置表.xlsx",
     "wait_time_between_messages": 1.0,
